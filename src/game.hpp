@@ -1,10 +1,11 @@
+#ifndef GAME_HPP
+#define GAME_HPP
+
 #include <cassert>
 #include <cstdint>
-#include <cmath>
 
 #include <vector>
-
-#include "token.hpp"
+#include "data_types.hpp"
 
 // A single unit in an array of units
 class GameSquare {
@@ -15,71 +16,98 @@ public:
     Token identity;
 };
 
-class GameBoard : public GameSquare {
+class GameBoard {
 public:
-    GameBoard(std::uint32_t length) {
-        this->length = length;
-        elements.resize(this->length, std::vector<GameSquare>(this->length));
+    GameBoard(uint32_t length): state(length, std::vector<GameSquare>(length)) {}
+    std::vector<std::vector<GameSquare>> state;
+
+    std::vector<GameSquare>& operator[](std::size_t idx) {
+        return state[idx];
+    }
+};
+
+class Game : public GameSquare {
+public:
+    Game(std::uint32_t length): length(length), board(GameBoard(length)) {}
+
+    Token makeMove(Move move) {
+        assert(move.position.row >= 0 && move.position.row < length && move.position.col >= 0 && move.position.col < length); // Guarantee valid position for move
+
+        board[move.position.row][move.position.col] = GameSquare(move.token);
+        return checkForLines(move.position);
     }
 
-    Token makeMove(std::uint32_t row, std::uint32_t col, Token move) {
-        assert(row >= 0 && row < length && col >= 0 && col < length); // Guarantee valid position for move
+    std::vector<Position> getEmptyPositions() {
+        std::vector<Position> emptyPositions;
+        for (std::uint32_t row = 0; row < this->length; row++) {
+            for (std::uint32_t col = 0; col < this->length; col++) {
+                if (board[row][col].identity == Token::None) emptyPositions.push_back({row, col});
+            }
+        }
+        return emptyPositions;
+    }
 
-        elements[row][col] = GameSquare(move);
-        return checkForLines(row, col);
+    Position getFirstEmptyPosition() {
+        for (std::uint32_t row = 0; row < this->length; row++) {
+            for (std::uint32_t col = 0; col < this->length; col++) {
+                if (board[row][col].identity == Token::None) return {row, col};
+            }
+        }
     }
 
 private:
     std::uint32_t length;
-    std::vector<std::vector<GameSquare>> elements;
+    GameBoard board;
 
-    Token checkForLines(std::uint32_t row, std::uint32_t col) {
+    // Line Checkers
+    Token checkForLines(Position position) {
         Token identity;
         
-        identity = checkRow(row); // Row check
+        identity = checkRow(position); // Row check
         if (identity != Token::None) return identity;
 
-        identity = checkCol(col); // Col check
+        identity = checkCol(position); // Col check
         if (identity != Token::None) return identity;
 
-        identity = checkDiagLeft(row, col); // Diagonal check
+        identity = checkDiagLeft(position); // Diagonal check
         if (identity != Token::None) return identity;
 
-        identity = checkDiagRight(row, col); // Diagonal check
+        identity = checkDiagRight(position); // Diagonal check
         if (identity != Token::None) return identity;
 
         return Token::None;
     }
 
-    // Row, column and diagonal line checkers
-    Token checkRow(std::uint32_t row) {
+    Token checkRow(Position position) {
         for (std::uint32_t col = 0; col < this->length; col++) {
-            if (elements[row][col].identity != elements[row][0].identity) return Token::None;
+            if (board[position.row][col].identity != board[position.row][0].identity) return Token::None;
         }
-        return elements[row][0].identity;
+        return board[position.row][0].identity;
     }
 
-    Token checkCol(std::uint32_t col) {
+    Token checkCol(Position position) {
         for (std::uint32_t row = 0; row < this->length; row++) {
-            if (elements[row][col].identity != elements[0][col].identity) return Token::None;
+            if (board[row][position.col].identity != board[0][position.col].identity) return Token::None;
         }
-        return elements[0][col].identity;        
+        return board[0][position.col].identity;        
     }
 
-    Token checkDiagLeft(std::uint32_t row, std::uint32_t col) {
-        if (row != col) return Token::None;
+    Token checkDiagLeft(Position position) {
+        if (position.row != position.col) return Token::None;
         for (std::uint32_t index = 0; index < this->length; index++) {
-            if (elements[index][index].identity != elements[0][0].identity) return Token::None;
+            if (board[index][index].identity != board[0][0].identity) return Token::None;
         }
-        return elements[0][0].identity; 
+        return board[0][0].identity; 
     }
 
-    Token checkDiagRight(std::uint32_t row, std::uint32_t col) {
-        if (row != this->length-col-1) return Token::None;
+    Token checkDiagRight(Position position) {
+        if (position.row != this->length-position.col-1) return Token::None;
         for (std::uint32_t index = 0; index < this->length; index++) {
-            if (elements[index][this->length-index-1].identity != elements[0][this->length-1].identity) return Token::None;
+            if (board[index][this->length-index-1].identity != board[0][this->length-1].identity) return Token::None;
         }
-        return elements[0][this->length-1].identity; 
+        return board[0][this->length-1].identity; 
     }
 
 };
+
+#endif
