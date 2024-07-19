@@ -7,14 +7,28 @@ int main() {
     Game board(4);
 
     MonteCarloNode* node = new MonteCarloNode(std::nullopt, board);
-    //node->performSimulation().printBoard();
+
+    auto selectedNode = node->performSelection();
+    auto expandedNode = selectedNode->performExpansion();
+    node = expandedNode.value();
+
+    selectedNode = node->performSelection();
+    expandedNode = selectedNode->performExpansion();
+    node = expandedNode.value();
+
+    selectedNode = node->performSelection();
+    expandedNode = selectedNode->performExpansion();
+    node = expandedNode.value();
+
 
     for (int i = 0; i < 10; i++) {
         auto selectedNode = node->performSelection();
-        selectedNode->performExpansion();
-        
-        selectedNode->getGame().printBoard();
-        selectedNode->performSimulation().printBoard();
+        auto expandedNode = selectedNode->performExpansion();
+    }
+
+    for (auto child : node->getChildren()) {
+        child->getGame().printBoard();
+        child->performExpansion();
     }
 
 /* Basic game

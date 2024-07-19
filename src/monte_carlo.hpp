@@ -25,13 +25,32 @@ public:
     }
 
     Game getGame() {
-        return game;
+        return this->game;
     }
 
+    std::vector<MonteCarloNode*> getChildren() {
+        return this->children;
+    }
 
     MonteCarloNode* performSelection() {
-        if (!this->isLeaf()) return getBestChild()->performSelection();
-        return this;
+        MonteCarloNode* bestNode = this;
+        double_t bestUtility;
+
+        MonteCarloNode* currNode = this;
+
+        while (!currNode->isLeaf()) {
+            MonteCarloNode* bestChild = currNode->getBestChild();
+
+            double_t utility = currNode->getChildUtility(bestChild);
+            if (utility > bestUtility) {
+                bestNode = bestChild;
+                bestUtility = utility;
+            }
+
+            currNode = bestChild;
+        }
+        
+        return bestNode;
     }
 
     void performSearchIteration() {
