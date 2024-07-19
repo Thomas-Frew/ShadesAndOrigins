@@ -1,10 +1,13 @@
 #ifndef GAME_HPP
 #define GAME_HPP
 
+#include <iostream>
+
 #include <cassert>
 #include <cstdint>
 
 #include <vector>
+#include <optional>
 #include "data_types.hpp"
 
 // A single unit in an array of units
@@ -28,13 +31,16 @@ public:
 
 class Game : public GameSquare {
 public:
-    Game(std::uint32_t length): length(length), board(GameBoard(length)) {}
+    Game(std::uint32_t length): length(length), board(GameBoard(length)), currentToken(Token::Shade) {}
 
     Token makeMove(Move move) {
         assert(move.position.row >= 0 && move.position.row < length && move.position.col >= 0 && move.position.col < length); // Guarantee valid position for move
 
-        board[move.position.row][move.position.col] = GameSquare(move.token);
-        return checkForLines(move.position);
+        this->board[move.position.row][move.position.col] = GameSquare(move.token);
+        this->identity = checkForLines(move.position);
+
+        this->invertCurrentToken();
+        return this->identity;
     }
 
     std::vector<Position> getEmptyPositions() {
@@ -47,17 +53,29 @@ public:
         return emptyPositions;
     }
 
-    Position getFirstEmptyPosition() {
+    Token getCurrentToken() {
+        return currentToken;
+    }
+
+    void invertCurrentToken() {
+        currentToken = invertToken(currentToken);
+    }
+
+    void printBoard() {
         for (std::uint32_t row = 0; row < this->length; row++) {
             for (std::uint32_t col = 0; col < this->length; col++) {
-                if (board[row][col].identity == Token::None) return {row, col};
+                std::cout << tokenToChar(board[row][col].identity) << ' ';
             }
+            std::cout << '\n';
         }
+        std::cout << '\n';
     }
 
 private:
     std::uint32_t length;
     GameBoard board;
+
+    Token currentToken;
 
     // Line Checkers
     Token checkForLines(Position position) {
