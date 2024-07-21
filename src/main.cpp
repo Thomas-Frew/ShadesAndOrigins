@@ -4,10 +4,16 @@
 
 int main() {
 
-    Game board(4);
+    Game board(3);
 
-    MonteCarloNode* node = new MonteCarloNode(std::nullopt, board);
+    MonteCarloNode* node = new MonteCarloNode(board, std::nullopt, std::nullopt);
+    for (int i = 0; i < 100000; i++) {
+        node->performSearchIteration();
+    }
+    node->printSearchTree();
+    
 
+/* Early manual test
     auto selectedNode = node->performSelection();
     auto expandedNode = selectedNode->performExpansion();
     node = expandedNode.value();
@@ -30,6 +36,7 @@ int main() {
         child->getGame().printBoard();
         child->performExpansion();
     }
+*/
 
 /* Basic game
     Game board(3);

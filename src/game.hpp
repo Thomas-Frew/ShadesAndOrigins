@@ -37,7 +37,7 @@ public:
         assert(move.position.row >= 0 && move.position.row < length && move.position.col >= 0 && move.position.col < length); // Guarantee valid position for move
 
         this->board[move.position.row][move.position.col] = GameSquare(move.token);
-        this->identity = checkForLines(move.position);
+        this->identity = this->checkForLines(move.position);
 
         this->invertCurrentToken();
         return this->identity;

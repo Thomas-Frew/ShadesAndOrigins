@@ -33,6 +33,12 @@ Token invertToken(Token token) {
     return Token::None;
 }
 
+std::int32_t tokenToEval(Token token) {
+    if (token == Token::Shade) return 1;
+    if (token == Token::Origin) return -1;
+    return 0;
+}
+
 char tokenToChar(Token token) {
     switch (token) {
         case Token::Shade:
